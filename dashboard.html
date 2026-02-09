@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dashboard | Smart Habit Builder</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body class="dashboard-body">
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <h2>🚀 HabitPro</h2>
+
+    <nav>
+      <a href="#">🏠 Dashboard</a>
+      <a href="reports.html">📊 Reports</a>
+      <a href="#">⚙ Settings</a>
+      <a href="index.html">🚪 Logout</a>
+    </nav>
+  </aside>
+
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <h2>Hello Sakshi 👋</h2>
+      <button onclick="toggleDark()">🌙</button>
+    </div>
+
+
+    <!-- STATS -->
+    <div class="stats">
+      <div class="stat-card">🔥 Streak<br><b id="streak">5 Days</b></div>
+      <div class="stat-card">✅ Today<br><b>3 / 5 Done</b></div>
+      <div class="stat-card">📈 Success<br><b>80%</b></div>
+      <div class="stat-card">🏆 Level<br><b>Pro</b></div>
+    </div>
+
+
+    <!-- HABITS -->
+    <div class="habit-section">
+
+      <div class="section-head">
+        <h3>Your Habits</h3>
+        <button onclick="addHabit()">+ Add Habit</button>
+      </div>
+
+      <div id="habitList" class="habit-list"></div>
+
+    </div>
+
+
+    <!-- CHART -->
+    <div class="chart-box">
+      <h3>Weekly Progress</h3>
+      <canvas id="chart"></canvas>
+    </div>
+
+  </main>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="js/api.js"></script>
+<script src="js/dashboard.js"></script>
+<script src="js/theme.js"></script>
+
+</body>
+</html>
+/* ===== HEATMAP ===== */
+const heatmap = document.getElementById("heatmap");
+
+for(let i=0;i<50;i++){
+  const sq = document.createElement("div");
+  sq.classList.add("square");
+
+  if(Math.random() > 0.4) {
+    sq.classList.add("active");
+  }
+
+  heatmap.appendChild(sq);
+}
+
+
+/* ===== MOTIVATION QUOTES ===== */
+const quotes = [
+  "Consistency beats motivation 🔥",
+  "Small steps every day 💪",
+  "Discipline = Success 🚀",
+  "Never break the streak!",
+  "Progress > Perfection"
+];
+
+setInterval(() => {
+  const q = quotes[Math.floor(Math.random()*quotes.length)];
+  document.getElementById("motivationText").innerText = q;
+}, 3000);
+
+
+/* ===== NOTIFICATION REMINDER ===== */
+setTimeout(() => {
+  if(Notification.permission !== "granted"){
+    Notification.requestPermission();
+  } else {
+    new Notification("Habit Reminder 🔔", {
+      body: "Complete today's habits!"
+    });
+  }
+}, 5000);
+
+
+/* ===== EXPORT REPORT ===== */
+function exportReport(){
+  const data = "Habit Report\nStreak: 5\nSuccess: 80%";
+  const blob = new Blob([data], { type: "text/plain" });
+
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "report.txt";
+  a.click();
+}
