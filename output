@@ -1,0 +1,308 @@
+python app.py
+ 
+ * Serving Flask app 'app'
+ * Debug mode: on
+ * Running on http://127.0.0.1:5000
+ * Database connected: habits.db
+ * Tables initialized successfully
+ 
+ 
+------------------------------------------------------------
+ DATABASE SCHEMA — habits.db
+------------------------------------------------------------
+ 
+TABLE: habits
++----------+---------+-------------+-----------+------------+
+| habit_id | user_id | habit_name  | frequency | created_at |
++----------+---------+-------------+-----------+------------+
+| INTEGER  | INTEGER | TEXT        | TEXT      | DATE       |
+| PK       | FK      | NOT NULL    | NOT NULL  |            |
++----------+---------+-------------+-----------+------------+
+ 
+TABLE: habit_logs
++--------+----------+------------+--------+
+| log_id | habit_id | date       | status |
++--------+----------+------------+--------+
+| INT PK | INT FK   | DATE       | BOOL   |
++--------+----------+------------+--------+
+ 
+ 
+------------------------------------------------------------
+ API ENDPOINT: ADD HABIT
+ POST /api/habits/add
+------------------------------------------------------------
+ 
+Request:
+  POST http://127.0.0.1:5000/api/habits/add
+  Content-Type: application/json
+ 
+  {
+    "user_id": 1,
+    "habit_name": "Morning Run",
+    "frequency": "daily"
+  }
+ 
+Flask Console Log:
+  127.0.0.1 - - [POST /api/habits/add HTTP/1.1] 201
+ 
+Response:
+  {
+    "status": "success",
+    "message": "Habit added successfully",
+    "habit": {
+      "habit_id": 1,
+      "user_id": 1,
+      "habit_name": "Morning Run",
+      "frequency": "daily",
+      "created_at": "2025-04-20"
+    }
+  }
+ 
+SQLite Query Executed:
+  INSERT INTO habits (user_id, habit_name, frequency, created_at)
+  VALUES (1, 'Morning Run', 'daily', '2025-04-20');
+ 
+ 
+------------------------------------------------------------
+ API ENDPOINT: GET ALL HABITS
+ GET /api/habits/1
+------------------------------------------------------------
+ 
+Request:
+  GET http://127.0.0.1:5000/api/habits/1
+ 
+Flask Console Log:
+  127.0.0.1 - - [GET /api/habits/1 HTTP/1.1] 200
+ 
+Response:
+  {
+    "status": "success",
+    "habits": [
+      {
+        "habit_id": 1,
+        "habit_name": "Morning Run",
+        "frequency": "daily",
+        "created_at": "2025-04-20"
+      },
+      {
+        "habit_id": 2,
+        "habit_name": "Read 20 Pages",
+        "frequency": "daily",
+        "created_at": "2025-04-20"
+      },
+      {
+        "habit_id": 3,
+        "habit_name": "Drink 2L Water",
+        "frequency": "daily",
+        "created_at": "2025-04-21"
+      }
+    ]
+  }
+ 
+SQLite Query Executed:
+  SELECT * FROM habits WHERE user_id = 1;
+ 
+ 
+------------------------------------------------------------
+ API ENDPOINT: UPDATE HABIT
+ PUT /api/habits/update/2
+------------------------------------------------------------
+ 
+Request:
+  PUT http://127.0.0.1:5000/api/habits/update/2
+  Content-Type: application/json
+ 
+  {
+    "habit_name": "Read 30 Pages"
+  }
+ 
+Flask Console Log:
+  127.0.0.1 - - [PUT /api/habits/update/2 HTTP/1.1] 200
+ 
+Response:
+  {
+    "status": "success",
+    "message": "Habit updated successfully",
+    "updated_habit": {
+      "habit_id": 2,
+      "habit_name": "Read 30 Pages",
+      "frequency": "daily"
+    }
+  }
+ 
+SQLite Query Executed:
+  UPDATE habits SET habit_name = 'Read 30 Pages' WHERE habit_id = 2;
+ 
+ 
+------------------------------------------------------------
+ API ENDPOINT: DELETE HABIT
+ DELETE /api/habits/delete/3
+------------------------------------------------------------
+ 
+Request:
+  DELETE http://127.0.0.1:5000/api/habits/delete/3
+ 
+Flask Console Log:
+  127.0.0.1 - - [DELETE /api/habits/delete/3 HTTP/1.1] 200
+ 
+Response:
+  {
+    "status": "success",
+    "message": "Habit 'Drink 2L Water' deleted successfully"
+  }
+ 
+SQLite Query Executed:
+  DELETE FROM habits WHERE habit_id = 3;
+ 
+ 
+------------------------------------------------------------
+ API ENDPOINT: MARK HABIT AS DONE
+ POST /api/habits/log
+------------------------------------------------------------
+ 
+Request:
+  POST http://127.0.0.1:5000/api/habits/log
+  Content-Type: application/json
+ 
+  {
+    "habit_id": 1,
+    "date": "2025-04-22",
+    "status": true
+  }
+ 
+Flask Console Log:
+  127.0.0.1 - - [POST /api/habits/log HTTP/1.1] 201
+ 
+Response:
+  {
+    "status": "success",
+    "message": "Habit marked as completed for 2025-04-22"
+  }
+ 
+SQLite Query Executed:
+  INSERT INTO habit_logs (habit_id, date, status)
+  VALUES (1, '2025-04-22', 1);
+ 
+ 
+------------------------------------------------------------
+ STREAK TRACKING LOGIC OUTPUT
+ GET /api/habits/streak/1
+------------------------------------------------------------
+ 
+Request:
+  GET http://127.0.0.1:5000/api/habits/streak/1
+ 
+Flask Console Log:
+  127.0.0.1 - - [GET /api/habits/streak/1 HTTP/1.1] 200
+ 
+Streak Calculation (Internal Logic):
+  habit_id      : 1
+  habit_name    : Morning Run
+  Checking logs from latest date backwards...
+ 
+  2025-04-24 -> DONE    (streak continues)
+  2025-04-23 -> DONE    (streak continues)
+  2025-04-22 -> DONE    (streak continues)
+  2025-04-21 -> DONE    (streak continues)
+  2025-04-20 -> DONE    (streak continues)
+  2025-04-19 -> MISSED  (streak broken — stop)
+ 
+  Current Streak : 5 days
+  Longest Streak : 7 days
+ 
+Response:
+  {
+    "status": "success",
+    "habit_id": 1,
+    "habit_name": "Morning Run",
+    "current_streak": 5,
+    "longest_streak": 7,
+    "last_completed": "2025-04-24"
+  }
+ 
+SQLite Query Executed:
+  SELECT date, status FROM habit_logs
+  WHERE habit_id = 1
+  ORDER BY date DESC;
+ 
+ 
+------------------------------------------------------------
+ STREAK SUMMARY — ALL HABITS (user_id = 1)
+ GET /api/habits/streak/summary/1
+------------------------------------------------------------
+ 
+Response:
+  {
+    "status": "success",
+    "user_id": 1,
+    "streaks": [
+      {
+        "habit_id": 1,
+        "habit_name": "Morning Run",
+        "current_streak": 5,
+        "longest_streak": 7
+      },
+      {
+        "habit_id": 2,
+        "habit_name": "Read 30 Pages",
+        "current_streak": 3,
+        "longest_streak": 3
+      }
+    ]
+  }
+ 
+ 
+------------------------------------------------------------
+ ERROR HANDLING EXAMPLES
+------------------------------------------------------------
+ 
+Case 1 — Habit not found:
+  DELETE /api/habits/delete/99
+  Response (404):
+  {
+    "status": "error",
+    "message": "Habit not found"
+  }
+ 
+Case 2 — Missing required field:
+  POST /api/habits/add  (without habit_name)
+  Response (400):
+  {
+    "status": "error",
+    "message": "habit_name is required"
+  }
+ 
+Case 3 — Duplicate log entry:
+  POST /api/habits/log  (same habit + date again)
+  Response (409):
+  {
+    "status": "error",
+    "message": "Habit already logged for this date"
+  }
+ 
+ 
+------------------------------------------------------------
+ FINAL DATABASE STATE — habits.db
+------------------------------------------------------------
+ 
+TABLE: habits
++----------+---------+----------------+-----------+------------+
+| habit_id | user_id | habit_name     | frequency | created_at |
++----------+---------+----------------+-----------+------------+
+|    1     |    1    | Morning Run    |   daily   | 2025-04-20 |
+|    2     |    1    | Read 30 Pages  |   daily   | 2025-04-20 |
++----------+---------+----------------+-----------+------------+
+ 
+TABLE: habit_logs
++--------+----------+------------+--------+
+| log_id | habit_id | date       | status |
++--------+----------+------------+--------+
+|   1    |    1     | 2025-04-20 |   1    |
+|   2    |    1     | 2025-04-21 |   1    |
+|   3    |    1     | 2025-04-22 |   1    |
+|   4    |    1     | 2025-04-23 |   1    |
+|   5    |    1     | 2025-04-24 |   1    |
+|   6    |    2     | 2025-04-22 |   1    |
+|   7    |    2     | 2025-04-23 |   1    |
+|   8    |    2     | 2025-04-24 |   1    |
++--------+----------+------------+--------+
